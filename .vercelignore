@@ -1,0 +1,7 @@
+# Vercel CLI 업로드 제외 목록 (.gitignore와 별개로 동작한다)
+# 비밀 값은 업로드하지 않고 Vercel 환경 변수로 넣는다.
+.env.local
+.env.*.local
+node_modules
+dist
+scripts/.cache
