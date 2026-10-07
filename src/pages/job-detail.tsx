@@ -1,4 +1,5 @@
 import { ArrowLeftIcon, SparklesIcon } from 'lucide-react'
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router'
 import { ErrorState, LoadingState } from '@/components/async-state'
 import { ME_COLOR, SERIES_COLORS, TraitRadar } from '@/components/charts'
@@ -7,6 +8,7 @@ import { LinkButton } from '@/components/link-button'
 import { Seo } from '@/components/seo'
 import { Badge } from '@/components/ui/badge'
 import { useJobDetail, useRecommendations } from '@/hooks/use-recommendations'
+import { track } from '@/lib/analytics'
 import { cleanText, type CareerNetJobDetail } from '@/lib/careernet'
 import { relatedJobs, type JobSummary } from '@/lib/jobs'
 import { jobPath, jobSeo, type JobSeoInput } from '@/lib/seo'
@@ -19,6 +21,11 @@ export function JobDetailPage() {
   const summary = jobsState.status === 'ready' ? jobsState.data.find((j) => j.id === id) : undefined
   const rec = recommendations?.find((r) => r.job.id === id)
   const rank = rec && recommendations ? recommendations.indexOf(rec) + 1 : null
+  const loadedName = detailState.status === 'ready' ? detailState.data.baseInfo.job_nm : null
+
+  useEffect(() => {
+    if (loadedName) track('view_job', { job_id: id, job_name: loadedName, fit: rec?.fit, rank: rank ?? undefined })
+  }, [id, loadedName]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (detailState.status === 'error') return <ErrorState message={detailState.error.message} onRetry={retry} />
   if (detailState.status === 'loading') return <LoadingState label="커리어넷에서 직업 정보를 가져오고 있어요" />

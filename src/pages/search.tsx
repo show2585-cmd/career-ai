@@ -1,5 +1,5 @@
 import { SearchIcon, XIcon } from 'lucide-react'
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { EmptyState, ErrorState, LoadingState } from '@/components/async-state'
 import { Seo } from '@/components/seo'
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRecommendations } from '@/hooks/use-recommendations'
+import { track } from '@/lib/analytics'
 import { searchScore } from '@/lib/search'
 import { jobPath, PUBLIC_PAGES } from '@/lib/seo'
 import { INTEREST_KEYS, INTERESTS, type InterestKey } from '@/lib/traits'
@@ -52,6 +53,15 @@ export function SearchPage() {
         return b.job.views - a.job.views
       })
   }, [state, field, deferredQuery, effectiveSort, fitById])
+
+  // 입력이 1초간 멈춘 검색어만 기록해 타이핑 중간 글자가 쌓이지 않게 한다.
+  const resultCount = results.length
+  useEffect(() => {
+    const term = deferredQuery.trim()
+    if (term.length < 2 || state.status !== 'ready') return
+    const timer = window.setTimeout(() => track('search', { search_term: term, results: resultCount, field: field ?? 'all' }), 1000)
+    return () => window.clearTimeout(timer)
+  }, [deferredQuery, field, resultCount, state.status])
 
   function update(next: { q?: string; field?: InterestKey | null }) {
     const p = new URLSearchParams(params)

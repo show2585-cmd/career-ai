@@ -1,8 +1,9 @@
 import { CompassIcon, MenuIcon, RotateCcwIcon, SearchIcon } from 'lucide-react'
-import { useState } from 'react'
-import { Link, NavLink, Outlet, useMatch } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation, useMatch } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { trackPageView } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/app-store'
 
@@ -20,6 +21,12 @@ export function Layout() {
   const completed = useAppStore((s) => s.completedAt !== null)
   // 메인 페이지는 KV를 화면 전체 폭으로 쓰기 위해 본문 폭 제한을 풀고, 각 섹션이 직접 폭을 정한다.
   const fullBleed = useMatch('/') !== null
+  const { pathname, search } = useLocation()
+
+  // 페이지 이동마다 page_view. 자식 페이지의 <Seo>가 먼저 제목을 바꾼 뒤 실행된다(자식 effect가 먼저 돈다).
+  useEffect(() => {
+    trackPageView(pathname + search)
+  }, [pathname, search])
 
   return (
     <div className="flex min-h-svh flex-col">

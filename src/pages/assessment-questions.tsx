@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { QUESTIONS } from '@/data/questions'
+import { track } from '@/lib/analytics'
+import { computeTraitScores, getPersona } from '@/lib/scoring'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/app-store'
 
@@ -46,6 +48,8 @@ export function AssessmentQuestionsPage() {
       return
     }
     complete()
+    const persona = getPersona(computeTraitScores(answers))
+    track('assessment_complete', { persona: persona.title, primary_trait: persona.primary })
     navigate('/assessment/analyzing')
   }
 

@@ -1,6 +1,7 @@
 import { BookmarkIcon, ColumnsIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { track } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 import { MAX_COMPARE, useAppStore } from '@/store/app-store'
 
@@ -20,6 +21,7 @@ export function JobActions({ jobId, jobName, className }: { jobId: string; jobNa
         className={cn('h-9 rounded-full px-3.5', saved && 'border-primary bg-secondary text-secondary-foreground')}
         onClick={() => {
           toggleSaved(jobId)
+          if (!saved) track('save_job', { job_id: jobId, job_name: jobName })
           toast(saved ? `'${jobName}'을(를) 관심 직무에서 뺐어요.` : `'${jobName}'을(를) 관심 직무에 저장했어요.`)
         }}
       >
@@ -33,6 +35,7 @@ export function JobActions({ jobId, jobName, className }: { jobId: string; jobNa
         className={cn('h-9 rounded-full px-3.5', comparing && 'border-primary bg-secondary text-secondary-foreground')}
         onClick={() => {
           if (!toggleCompare(jobId)) toast(`비교는 최대 ${MAX_COMPARE}개까지 담을 수 있어요.`)
+          else if (!comparing) track('compare_add', { job_id: jobId, job_name: jobName })
         }}
       >
         <ColumnsIcon aria-hidden />

@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { ESTIMATED_MINUTES, QUESTIONS } from '@/data/questions'
+import { track } from '@/lib/analytics'
 import { PUBLIC_PAGES } from '@/lib/seo'
 import { cn } from '@/lib/utils'
 import { INTEREST_KEYS, INTERESTS, type InterestKey } from '@/lib/traits'
@@ -27,6 +28,7 @@ export function AssessmentStartPage() {
   function start(fresh: boolean) {
     setProfile({ ageGroup, status, interests })
     if (fresh) resetAssessment()
+    track('assessment_start', { resume: !fresh, age_group: ageGroup, status })
     navigate('/assessment/questions')
   }
 

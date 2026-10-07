@@ -1,4 +1,5 @@
 import { CheckIcon } from 'lucide-react'
+import { useEffect } from 'react'
 import { Link, Navigate } from 'react-router'
 import { ErrorState, LoadingState } from '@/components/async-state'
 import { JobActions } from '@/components/job-actions'
@@ -6,6 +7,7 @@ import { LinkButton } from '@/components/link-button'
 import { PrivateSeo } from '@/components/seo'
 import { Badge } from '@/components/ui/badge'
 import { useRecommendations } from '@/hooks/use-recommendations'
+import { track } from '@/lib/analytics'
 import { diversify, type Recommendation } from '@/lib/recommend'
 import { INTERESTS } from '@/lib/traits'
 
@@ -14,6 +16,12 @@ const MORE_COUNT = 5
 
 export function JobsPage() {
   const { result, state, recommendations, retry } = useRecommendations()
+  const topJob = recommendations ? diversify(recommendations, 1)[0] : undefined
+
+  useEffect(() => {
+    if (topJob) track('view_recommendations', { top_job: topJob.job.name, top_fit: topJob.fit })
+  }, [topJob?.job.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!result) return <Navigate to="/assessment" replace />
 
   if (state.status === 'error') {
