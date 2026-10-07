@@ -27,7 +27,9 @@ const SEARCH_SEO = PUBLIC_PAGES.find((p) => p.path === '/search')!
 
 export function SearchPage() {
   const [params, setParams] = useSearchParams()
-  const query = params.get('q') ?? ''
+  // 입력값은 로컬 상태로 둔다. URL을 직접 value로 쓰면 키 입력마다 주소가 바뀌며
+  // 한글 IME 조합이 깨져 "ㄱ개갭바발…"처럼 글자가 중복 입력된다.
+  const [query, setQuery] = useState(() => params.get('q') ?? '')
   const field = (params.get('field') as InterestKey | null) ?? null
   const { state, recommendations, retry } = useRecommendations()
   const [sort, setSort] = useState<SortKey>('popular')
@@ -63,6 +65,13 @@ export function SearchPage() {
     return () => window.clearTimeout(timer)
   }, [deferredQuery, field, resultCount, state.status])
 
+  // 검색어는 입력이 0.3초 멈추면 주소(?q=)에 반영해 공유·북마크가 되게 한다.
+  useEffect(() => {
+    if (query === (params.get('q') ?? '')) return
+    const timer = window.setTimeout(() => update({ q: query }), 300)
+    return () => window.clearTimeout(timer)
+  }, [query]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function update(next: { q?: string; field?: InterestKey | null }) {
     const p = new URLSearchParams(params)
     if (next.q !== undefined) {
@@ -92,7 +101,7 @@ export function SearchPage() {
         <input
           type="search"
           value={query}
-          onChange={(e) => update({ q: e.target.value })}
+          onChange={(e) => setQuery(e.target.value)}
           placeholder="예) 개발자, 간호, ㄱㅊㄱ"
           aria-label="직업 검색어"
           autoComplete="off"
@@ -102,7 +111,10 @@ export function SearchPage() {
         {query && (
           <button
             type="button"
-            onClick={() => update({ q: '' })}
+            onClick={() => {
+              setQuery('')
+              update({ q: '' })
+            }}
             aria-label="검색어 지우기"
             className="absolute top-1/2 right-3 grid size-8 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-muted"
           >
